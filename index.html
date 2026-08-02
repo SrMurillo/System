@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostic Tool v4.02</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="terminal">
+    <div class="terminal-header">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+        <span class="title">bash - root@system-override:~</span>
+    </div>
+
+    <div class="terminal-body" id="console">
+        <p class="warning">[ALERTA] Conexión no segura detectada...</p>
+    </div>
+
+    <div class="progress-container" id="progress-container">
+        <p id="progress-text">Extrayendo datos del sistema: 0%</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Audio de error al final (opcional) -->
+<script src="script.js"></script>
+</body>
+</html>
