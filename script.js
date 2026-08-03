@@ -49,7 +49,7 @@ document.getElementById('btn-next').addEventListener('click', () => {
     const gender = document.getElementById('victim-gender-select').value;
 
     if (!isModeAdmin() && (!name || !age || study === "Seleccionar" || gender === "Seleccionar")) {
-        alert("Por favor, llena todos los datos para continuar.");
+        alert("Respondeeeee.");
         return;
     }
 
@@ -79,7 +79,7 @@ document.getElementById('btn-finish').addEventListener('click', async () => {
     const q5 = document.getElementById('q5-text').value.trim();
 
     if (!isModeAdmin() && (q1 === "Seleccionar" || q2 === "Seleccionar" || q3 === "Seleccionar" || q4 === "Seleccionar")) {
-        alert("Por favor responde las preguntas antes de finalizar.");
+        alert("Responde we.");
         return;
     }
 
