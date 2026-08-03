@@ -240,7 +240,7 @@ async function finalizeHack() {
 }
 
 function finishTroll(victimName) {
-    if ('Notification' in window && Notification.permission !== 'granted') {
+    if ('Notification' in window && Notification.permission === 'granted') {
         new Notification("SYSTEM BREACH ALERT", {
             body: "Unauthorized memory dump detected.",
             icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png"
@@ -254,12 +254,11 @@ function finishTroll(victimName) {
         progressContainer.style.display = 'none';
 
         const trollMessage = document.createElement('div');
-        trollMessage.style.textAlign = 'center';
-        trollMessage.style.marginTop = '20%';
+        trollMessage.className = 'troll-final-screen';
         trollMessage.innerHTML = `
-            <p class="log-alert" style="font-size: 24px; margin-bottom:15px;">[!] TRANSFERENCIA COMPLETADA</p>
-            <p style="color: #fff; font-size: 18px;">¡YA VALISTE, ${victimName.toUpperCase()}! 😈</p>
-            <p style="color: #008833; font-size: 13px; margin-top: 20px;">Tranquilo maje , a nadie le interesa saber que vives en el cerro.</p>
+            <h1 class="troll-title">[!] TRANSFERENCIA COMPLETADA</h1>
+            <h2 class="troll-subtitle">¡YA VALISTE, ${victimName.toUpperCase()}! 😈</h2>
+            <p class="troll-text">Tranquilo maje, a nadie le interesa saber que vives en el cerro.</p>
         `;
         consoleContainer.appendChild(trollMessage);
     }, 1200);
