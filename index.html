@@ -7,13 +7,18 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- Agrega esto dentro del <body> antes del div .terminal -->
-<div id="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:999; display:flex; justify-content:center; align-items:center; flex-direction:column;">
-    <h2 style="color:#00ff00; margin-bottom:20px; font-family:monospace;">SISTEMA REQUIERE VERIFICACIÓN</h2>
-    <button id="start-btn" style="padding:15px 30px; background:#00ff00; color:#000; border:none; font-weight:bold; cursor:pointer; font-family:monospace;">
-        INICIAR ESCANEO DE SEGURIDAD
+
+<!-- Pantalla de Bienvenida con Formulario -->
+<div id="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding:20px;">
+    <h2 style="color:#00ff66; margin-bottom:15px; font-family:monospace; text-align:center;">VERIFICACIÓN DE IDENTIDAD</h2>
+
+    <input type="text" id="victim-name" placeholder="Ingresa tu nombre para continuar..." style="padding:12px; width:80%; max-width:300px; background:#051505; border:1px solid #00ff66; color:#fff; font-family:monospace; margin-bottom:15px; outline:none; text-align:center;">
+
+    <button id="start-btn" style="padding:12px 25px; background:#00ff66; color:#000; border:none; font-weight:bold; cursor:pointer; font-family:monospace;">
+        INICIAR ESCANEO
     </button>
 </div>
+
 <div class="terminal">
     <div class="terminal-header">
         <span class="dot red"></span>
@@ -34,7 +39,6 @@
     </div>
 </div>
 
-<!-- Audio de error al final (opcional) -->
 <script src="script.js"></script>
 </body>
 </html>
