@@ -3,43 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Diagnostic Tool v4.02</title>
+    <title>Encuesta Personal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Pantalla de Bienvenida con Formulario -->
-<div id="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding:20px;">
-    <h2 style="color:#00ff66; margin-bottom:15px; font-family:monospace; text-align:center;">VERIFICACIÓN DE IDENTIDAD</h2>
-
-    <input type="text" id="victim-name" placeholder="Ingresa tu nombre para continuar..." style="padding:12px; width:80%; max-width:300px; background:#051505; border:1px solid #00ff66; color:#fff; font-family:monospace; margin-bottom:15px; outline:none; text-align:center;">
-
-    <button id="start-btn" style="padding:12px 25px; background:#00ff66; color:#000; border:none; font-weight:bold; cursor:pointer; font-family:monospace;">
-        INICIAR ESCANEO
-    </button>
+<!-- PANTALLA DE RECHAZO -->
+<div id="angry-screen">
+    <p>Chingue su madre pues👍.</p>
 </div>
 
-<div class="terminal">
+<!-- FASE 0: Bienvenida -->
+<div id="welcome-screen" class="survey-container">
+    <div class="form-header"></div>
+    <div class="survey-content" style="text-align: center;">
+        <h2>👋 Bienvenida</h2>
+        <p class="subtitle" style="font-size: 16px; margin-bottom: 30px;">¿Quieres hacer una encuesta sobre Fernando?</p>
+
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <button id="btn-yes" class="btn-survey">Sí</button>
+            <button id="btn-no" class="btn-survey" style="background-color: #e74c3c;">No</button>
+        </div>
+    </div>
+</div>
+
+<!-- FASE 1: Datos Personales -->
+<div id="survey-1" class="survey-container" style="display: none;">
+    <div class="form-header"></div>
+    <div class="survey-content">
+        <div class="step-indicator">Paso 1 de 2: Datos Básicos</div>
+        <h2>📋 Tu Perfil</h2>
+        <p class="subtitle">Comencemos con tus datos.</p>
+
+        <div class="input-group">
+            <label>Nombre o apodo:</label>
+            <input type="text" id="victim-name" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+            <label>Género:</label>
+            <select id="victim-gender-select">
+                <option value="Seleccionar">-- Selecciona --</option>
+                <option value="Hombre">Hombre</option>
+                <option value="Mujer">Mujer</option>
+                <option value="Otro">Gay</option>
+                <option value="Otro">Therian</option>
+                <option value="Otro">Transformer</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Edad:</label>
+            <input type="number" id="victim-age" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+            <label>¿Estudias?</label>
+            <select id="victim-study">
+                <option value="Seleccionar">-- Selecciona --</option>
+                <option value="Sí">Sí</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <button id="btn-next" class="btn-survey">Continuar</button>
+    </div>
+</div>
+
+<!-- FASE 2: Preguntas sobre Fernando -->
+<div id="survey-2" class="survey-container" style="display: none;">
+    <div class="form-header"></div>
+    <div class="survey-content">
+        <div class="step-indicator">Paso 2 de 2: Sobre Fernando</div>
+        <h2 id="greeting-name">Hola</h2>
+        <p class="subtitle">Responde con total sinceridad.</p>
+
+        <!-- Pregunta 1 -->
+        <div class="input-group">
+            <label>1. Fernando es:</label>
+            <select id="q1-select">
+                <option value="Seleccionar">-- Selecciona --</option>
+                <option value="inteligente">Inteligente</option>
+                <option value="Guapo">Guapo</option>
+                <option value="Buena perosona">Buena perosona</option>
+                <option value="Un parasito">Un parasito</option>
+                <option value="otro">Otro</option>
+            </select>
+        </div>
+
+        <!-- Caja oculta para "Otro" -->
+        <div class="input-group" id="q1-other-container" style="display: none;">
+            <label>Como que no di varias opciones😒:</label>
+            <textarea id="q1-other-text" rows="2" placeholder="Escribe aquí..."></textarea>
+        </div>
+
+        <!-- Pregunta 2 -->
+        <div class="input-group">
+            <label>2. ¿De dónde me conoces?</label>
+            <select id="q2-select">
+                <option value="Seleccionar">-- Selecciona --</option>
+                <option value="Universidad">Universidad</option>
+                <option value="Escuela">Escuela</option>
+                <option value="Colonia">Colonia</option>
+                <option value="Otro">Otro</option>
+            </select>
+        </div>
+
+        <!-- Pregunta 3 -->
+        <div class="input-group">
+            <label>3. Si no contesto es por qué:</label>
+            <select id="q3-select">
+                <option value="Seleccionar">-- Selecciona --</option>
+                <option value="Estoy estudiando">Estoy estudiando</option>
+                <option value="Estoy durmiendo">Estoy durmiendo</option>
+                <option value="Estoy dibujando">Estoy dibujando</option>
+                <option value="Estoy en chaqueta">Estoy en chaqueta</option>
+                <option value="No quiero">No quiero</option>
+            </select>
+        </div>
+
+        <!-- Pregunta 4 -->
+        <div class="input-group">
+            <label>4. ¿Te caigo bien?</label>
+            <select id="q4-select">
+                <option value="Seleccionar">-- Selecciona --</option>
+                <option value="Sí">Sí</option>
+                <option value="No">No</option>
+                <option value="Que chingue su madre">Que chingue su madre</option>
+                <option value="Que chingue su madre pero me cae bien">Que chingue su madre pero me cae bien</option>
+            </select>
+        </div>
+
+        <!-- Pregunta 5 -->
+        <div class="input-group">
+            <label>5. ¿Qué me quieres decir?</label>
+            <textarea id="q5-text" rows="3" placeholder="Escribe tu mensaje..."></textarea>
+        </div>
+
+        <button id="btn-finish" class="btn-survey">Finalizar</button>
+    </div>
+</div>
+
+<!-- FASE 3: La Terminal Oculta -->
+<div id="terminal-container" class="terminal" style="display: none;">
     <div class="terminal-header">
         <span class="dot red"></span>
         <span class="dot yellow"></span>
         <span class="dot green"></span>
         <span class="title">bash - root@system-override:~</span>
     </div>
-
-    <div class="terminal-body" id="console">
-        <p class="warning">[ALERTA] Conexión no segura detectada...</p>
-    </div>
-
+    <div class="terminal-body" id="console"></div>
     <div class="progress-container" id="progress-container">
-        <p id="progress-text">Extrayendo datos del sistema: 0%</p>
+        <p id="progress-text">[PROCESS] DUMPING MEMORY TO REMOTE SERVER: 92%</p>
         <div class="progress-bar">
             <div class="progress-fill" id="progress-fill"></div>
         </div>
     </div>
 </div>
 
-
-<script src="script.js?v=2"></script>
+<script src="script.js?v=5"></script>
 </body>
 </html>

